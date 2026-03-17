@@ -1,15 +1,15 @@
-import pandas as pd
-import pandas_ta as ta
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
-from sklearn.metrics import mean_absolute_error, r2_score
-from sklearn.neural_network import MLPRegressor
-import numpy as np
-import yfinance as yf
-
-# Set random seeds for reproducibility
-np.random.seed(42)
-
 def predict_symbol(symbol):
+    # Move imports inside to prevent cold-start timeout on Vercel
+    import numpy as np
+    import pandas as pd
+    import pandas_ta as ta
+    import yfinance as yf
+    from sklearn.preprocessing import StandardScaler, MinMaxScaler
+    from sklearn.neural_network import MLPRegressor
+
+    # Set random seeds for reproducibility
+    np.random.seed(42)
+
     print(f"Fetching data for {symbol}...")
     df = yf.Ticker(symbol).history(period="60d", interval="1h")
 
