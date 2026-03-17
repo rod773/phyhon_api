@@ -2,14 +2,11 @@ import pandas as pd
 import pandas_ta as ta
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.metrics import mean_absolute_error, r2_score
+from sklearn.neural_network import MLPRegressor
 import numpy as np
 import yfinance as yf
-import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import SimpleRNN, Dense, Dropout
 
 # Set random seeds for reproducibility
-tf.random.set_seed(42)
 np.random.seed(42)
 
 def predict_symbol(symbol):
@@ -80,26 +77,23 @@ def predict_symbol(symbol):
     X_test, y_test = create_sequences(X_test_scaled, y_test_scaled, sequence_length)
 
     # --- 5. Model Training ---
-    model = Sequential([
-        SimpleRNN(50, activation='relu', return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2])),
-        Dropout(0.2),
-        SimpleRNN(50, activation='relu'),
-        Dropout(0.2),
-        Dense(25, activation='relu'),
-        Dense(1)
-    ])
-
-    model.compile(optimizer='adam', loss='mean_squared_error')
-    # Reduced verbosity for web app
-    model.fit(X_train, y_train, epochs=50, batch_size=32, validation_data=(X_test, y_test), verbose=0)
+    # Flatten inputs for MLP (Scikit-Learn) instead of RNN (TensorFlow)
+    # Shape becomes (samples, sequence_length * features)
+    X_train_flat = X_train.reshape(X_train.shape[0], -1)
+    
+    # Use MLPRegressor (Lightweight Neural Network)
+    model = MLPRegressor(hidden_layer_sizes=(50, 50, 25), random_state=42, max_iter=200)
+    model.fit(X_train_flat, y_train.ravel())
 
     # --- 6. Prediction ---
     full_features_df = df.drop(columns=features_to_exclude, errors='ignore')
     latest_sequence_df = full_features_df.iloc[-sequence_length:]
     latest_sequence_scaled = x_scaler.transform(latest_sequence_df)
-    input_for_prediction = np.expand_dims(latest_sequence_scaled, axis=0)
+    
+    # Reshape for MLP: (1, sequence_length * n_features)
+    input_for_prediction = latest_sequence_scaled.reshape(1, -1)
     
     todays_eod_prediction_scaled = model.predict(input_for_prediction)
-    todays_eod_prediction = y_scaler.inverse_transform(todays_eod_prediction_scaled)
+    todays_eod_prediction = y_scaler.inverse_transform(todays_eod_prediction_scaled.reshape(-1, 1))
 
     return f"{todays_eod_prediction[0][0]:.4f}"

@@ -5,4 +5,3 @@ pandas_ta
 scikit-learn
 numpy
 yfinance
-tensorflow-cpu
