@@ -1,15 +1,12 @@
-from flask import Flask;
+from flask import Flask
 
-
-app = Flask(__name__);
+app = Flask(__name__)
 
 
 @app.route("/")
-def Home():
-     return "Hello Vercel"
+def home():
+    return "<h1>" + str(5 * 10) + "</h1>"
 
 
 if __name__ == "__main__":
-     app.run()
-
-
+    app.run()
