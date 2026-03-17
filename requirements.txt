@@ -1,2 +1,8 @@
 flask
 gunicorn
+pandas
+pandas_ta
+scikit-learn
+numpy
+yfinance
+tensorflow
